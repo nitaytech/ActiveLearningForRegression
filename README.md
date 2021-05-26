@@ -23,11 +23,55 @@
 We have uploaded a data file (`data/milk_sessions.csv`) which contains real features of milking sessions of cows. Note that the results of the paper cannot be reproduced by this data file, since we have ommited additional features which we could not disclose for busniess reasons.
 
 ### Data Schema (columns):
-* 
+* 'Date'
+* 'CowID'
+* 'DailyYield_KG':
+* 'DailyFat_P'
+* 'DailyProtein_P'
+* 'DailyConductivity'
+* 'DailyActivity'
+* 'CurrentRP'
+* 'CurrentMET'
+* 'CurrentKET'
+* 'CurrentMF'
+* 'CurrentPRO'
+* 'CurrentLDA'
+* 'CurrentMAST'
+* 'CurrentEdma'
+* 'CurrentLAME'
+* 'Disease'
+* 'DIM'
+* 'DIM_<50', 'DIM_50-175', 'DIM_>=175' - an indicator (0 or 1)
+* 'LactationNumber'
+* 'Fertility_Num'
+* 'Age'
+* 'Still'
+* 'Milk'
+* 'MilkTemperature'
+* 'Fat'
+* 'Protein'
+* 'Lactose'
+* 'LogScc'
+* 'Cf'
+* 'Blood'
+* 'Casein'
+* 'Mufa'
+* 'Pufa'
+* 'Sfa'
+* 'Ufa'
+* 'Pa'
+* 'Sa'
+* 'Oa'
+* 'Component7'
 
 ## The Paper
 Paper is under review.
 [Technical report](https://github.com/nitaytech/ActiveLearningForRegression/blob/main/Tech-Report.pdf)
+
+<p align="center">
+<img src ="images/algorithm.jpg">
+</p>
+
 
 **BibTeX**:
 T.B.A
