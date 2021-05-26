@@ -119,9 +119,6 @@ def create_init_train(data_train):
 
 
 def create_datasets(data):
-    data = data[(data[M.ANIMAL_TOTAL_COLUMN] > 0) & (data[M.AFILAB_TOTAL_COLUMN] > 0) & (data[y_col].isna() == False)]\
-                .sort_values(by=[M.DATE_COLUMN, M.COW_COLUMN]).copy()
-    data[features] = data[features].fillna(data[features].mean())
     train_date = data[M.DATE_COLUMN].min()
     data_train = data[data[M.DATE_COLUMN] <= train_date]
     X_train, y_train = create_init_train(data_train)
@@ -252,20 +249,23 @@ def main():
     n_instances = 8
     init_steps = [5, 10, 15, 20, 25]
     init_methods = [None, ['greedy_distances'], ['greedy_paretos'], ['greedy_clustering'], ['random']]
-    regressors = [mlp_regressor]
+    regressors = [LogisticRegression, random_forest, xgboost_regressor]
+    files = []
     for i in range(len(regressors)):
         print(regressors[i].__name__, regressors[i]())
         dfs = []
         for init_method in init_methods:
-            data = pd.read_csv('../data/geva_cows_session2_300d2.csv', parse_dates=[M.DATE_COLUMN])
-            print(data.shape)
-            data = data[data[M.DATE_COLUMN] >= '2020-01-15']
-            print(data.shape)
+            data = pd.read_csv(M.DATA_FILE, parse_dates=[M.DATE_COLUMN])
             df = run_methods_with_init(data, regressors=[regressors[i]], init_method=init_method, init_steps=init_steps)
             init_method_string = '_'.join([str(x) for x in convert_to_iterable(init_method)])
-            df.to_csv('../data/results_geva11_k{}_{}_{}_nn.csv'.format(n_instances, regressors[i].__name__,
-                                                                       init_method_string), index=False)
+            result_file = 'results_k{}_{}_{}.csv'.format(n_instances, regressors[i].__name__, init_method_string)
+            df.to_csv(os.path.join(M.RESULTS_FOLDER, result_file), index=False)
             dfs.append(df)
-        pd.concat(dfs, axis=0).to_csv(
-            '../data/active_learning/results_geva11_k{}_{}_all_nn.csv'.format(n_instances, regressors[i].__name__),
-            index=False)
+        result_file = 'results_k{}_{}_all.csv'.format(n_instances, regressors[i].__name__)
+        pd.concat(dfs, axis=0).to_csv(os.path.join(M.RESULTS_FOLDER, result_file), index=False)
+        files.append(os.path.join(M.RESULTS_FOLDER, result_file))
+    all_results_df = []
+    for file in files:
+        all_results_df.append(pd.read_csv(file))
+    all_results_df = pd.concat(all_results_df, axis=0)
+    all_results_df.to_csv(os.path.join(M.RESULTS_FOLDER, 'results_k{}_all.csv'.format(n_instances)))
