@@ -8,7 +8,7 @@ import pandas as pd
 import random
 from time import time
 import xgboost
-
+from collections.abc import Iterable
 import warnings
 import sys
 import os
@@ -17,33 +17,13 @@ if not sys.warnoptions:
     warnings.simplefilter("ignore")
     os.environ["PYTHONWARNINGS"] = "ignore"
 
-# defining the global variables
-features = M.AL_FEATURES
-y_col = M.AL_Y
-train_days = M.AL_TRAIN_DAYS
-test_days = M.AL_TEST_DAYS
-n_init = M.AL_N_INIT
-n_instances = M.AL_N_INSTANCES
-n_clusters = M.AL_N_CLUSTERS
-bins = M.AL_BINS
-classifier_init = LogisticRegression
-regressor_init = methods.LinearRegression
-
-
-from collections.abc import Iterable
-import types
-import pandas as pd
-from pandas.api.types import is_datetime64_any_dtype as is_datetime
-import re
-
-
+# TODO: documentation
 
 def convert_to_iterable(var):
     vars = var
     if isinstance(vars, str) or not isinstance(vars, Iterable):
         vars = [var]
     return vars
-
 
 
 def run_method(regressor, method, list_type, X_train, y_train, X_pool, n_instances):
@@ -77,31 +57,31 @@ def run_method(regressor, method, list_type, X_train, y_train, X_pool, n_instanc
         query_idx = methods.greedy_predictions(regressor, y_train, X_pool, n_instances=n_instances)
     elif method == 'cluster_uncertainty':
         regressor = regressor.fit(X_train, y_train)
-        query_idx = methods.cluster_uncertainty(regressor, X_pool, n_clusters=n_clusters, n_instances=n_instances)
+        query_idx = methods.cluster_uncertainty(regressor, X_pool, n_clusters=M.N_CLUSTERS, n_instances=n_instances)
     elif method == 'mse_uncertainty':
         regressor = regressor.fit(X_train, y_train)
         query_idx = methods.mse_uncertainty(regressor, X_train, y_train, X_pool, n_instances=n_instances)
     elif method == 'discretization_uncertainty':
-        classifier = classifier_init()
+        classifier = LogisticRegression()
         query_idx = methods.discretization_uncertainty(classifier, X_train, y_train, X_pool,
-                                                       bins=bins, n_instances=n_instances)
+                                                       bins=M.BINS, n_instances=n_instances)
     elif method == 'greedy_paretos':
-        g_features = [i for i, col in enumerate(features) if col in M.AL_G_FEATURES]
-        b_features = [i for i, col in enumerate(features) if col in M.AL_B_FEATURES]
+        g_features = [i for i, col in enumerate(M.FEATURES) if col in M.AL_G_FEATURES]
+        b_features = [i for i, col in enumerate(M.FEATURES) if col in M.AL_B_FEATURES]
         query_idx = methods.greedy_paretos(X_train, X_pool, g_features, b_features, n_instances=n_instances)
     elif method == 'pareto':
-        g_features = [i for i, col in enumerate(features) if col in M.AL_G_FEATURES]
-        b_features = [i for i, col in enumerate(features) if col in M.AL_B_FEATURES]
+        g_features = [i for i, col in enumerate(M.FEATURES) if col in M.AL_G_FEATURES]
+        b_features = [i for i, col in enumerate(M.FEATURES) if col in M.AL_B_FEATURES]
         query_idx = methods.paretos(X_pool, g_features, b_features, n_instances=n_instances)
     elif method == 'greedy_clustering':
-        query_idx = methods.greedy_clustering(X_train, X_pool, n_clusters=n_clusters, n_instances=n_instances)
+        query_idx = methods.greedy_clustering(X_train, X_pool, n_clusters=M.N_CLUSTERS, n_instances=n_instances)
     else:
         query_idx = random.choices(list(range(X_pool.shape[0])), k=n_instances)
     return query_idx
 
 
 def simulation(regressor, method, list_type, X_train, y_train, X_pool, y_pool, X_test, y_test):
-    query_idx = run_method(regressor, method, list_type, X_train, y_train, X_pool, n_instances)
+    query_idx = run_method(regressor, method, list_type, X_train, y_train, X_pool, M.N_INSTANCES)
     X_new = X_pool[query_idx]
     y_new = y_pool[query_idx]
     regressor.fit(np.concatenate([X_train, X_new], axis=0), np.concatenate([y_train, y_new], axis=0))
@@ -113,8 +93,8 @@ def simulation(regressor, method, list_type, X_train, y_train, X_pool, y_pool, X
 
 
 def create_init_train(data_train):
-    init = data_train.groupby(M.DATE_COLUMN).apply(lambda x: x.sample(n=n_init, random_state=42))
-    X_train, y_train = init[features], init[y_col]
+    init = data_train.groupby(M.DATE_COLUMN).apply(lambda x: x.sample(n=M.N_INIT, random_state=42))
+    X_train, y_train = init[M.FEATURES], init[M.Y_COLUMN]
     return X_train, y_train
 
 
@@ -122,9 +102,10 @@ def create_datasets(data):
     train_date = data[M.DATE_COLUMN].min()
     data_train = data[data[M.DATE_COLUMN] <= train_date]
     X_train, y_train = create_init_train(data_train)
-    data_val, data_test = train_test_split(data[data[M.DATE_COLUMN] > train_date], test_size=0.05, random_state=42)
-    X_test = data_test[features]
-    y_test = data_test[y_col]
+    data_val, data_test = train_test_split(data[data[M.DATE_COLUMN] > train_date],
+                                           test_size=M.TEST_SIZE, random_state=42)
+    X_test = data_test[M.FEATURES]
+    y_test = data_test[M.Y_COLUMN]
     return X_train.values, y_train.values, data_val.reset_index(drop=True), X_test.values, y_test.values
 
 
@@ -134,8 +115,8 @@ def run_methods_simulations(regressor, method, list_type, X_train, y_train, data
     dates.sort()
     for date in dates:
         filtered_data = data_val[data_val[M.DATE_COLUMN] == date]
-        X_pool = filtered_data[features].values
-        y_pool = filtered_data[y_col].values
+        X_pool = filtered_data[M.FEATURES].values
+        y_pool = filtered_data[M.Y_COLUMN].values
         t0 = time()
         query_idx, mse, mae, r2 = simulation(regressor, method, list_type, X_train, y_train,
                                              X_pool, y_pool, X_test, y_test)
@@ -246,26 +227,32 @@ def mlp_regressor():
 
 
 def main():
-    n_instances = 8
-    init_steps = [5, 10, 15, 20, 25]
     init_methods = [None, ['greedy_distances'], ['greedy_paretos'], ['greedy_clustering'], ['random']]
     regressors = [LogisticRegression, random_forest, xgboost_regressor]
     files = []
+    os.makedirs(M.RESULTS_FOLDER, exist_ok=True)
     for i in range(len(regressors)):
         print(regressors[i].__name__, regressors[i]())
         dfs = []
         for init_method in init_methods:
             data = pd.read_csv(M.DATA_FILE, parse_dates=[M.DATE_COLUMN])
-            df = run_methods_with_init(data, regressors=[regressors[i]], init_method=init_method, init_steps=init_steps)
+            df = run_methods_with_init(data, regressors=[regressors[i]],
+                                       init_method=init_method, init_steps=M.INIT_STEPS)
             init_method_string = '_'.join([str(x) for x in convert_to_iterable(init_method)])
-            result_file = 'results_k{}_{}_{}.csv'.format(n_instances, regressors[i].__name__, init_method_string)
+            result_file = 'results_k{}_{}_{}.csv'.format(M.N_INSTANCES, regressors[i].__name__, init_method_string)
             df.to_csv(os.path.join(M.RESULTS_FOLDER, result_file), index=False)
             dfs.append(df)
-        result_file = 'results_k{}_{}_all.csv'.format(n_instances, regressors[i].__name__)
+        # save all the results for the regressor
+        result_file = 'results_k{}_{}_all.csv'.format(M.N_INSTANCES, regressors[i].__name__)
         pd.concat(dfs, axis=0).to_csv(os.path.join(M.RESULTS_FOLDER, result_file), index=False)
+        # add the path to the csv file
         files.append(os.path.join(M.RESULTS_FOLDER, result_file))
     all_results_df = []
     for file in files:
         all_results_df.append(pd.read_csv(file))
     all_results_df = pd.concat(all_results_df, axis=0)
-    all_results_df.to_csv(os.path.join(M.RESULTS_FOLDER, 'results_k{}_all.csv'.format(n_instances)))
+    all_results_df.to_csv(os.path.join(M.RESULTS_FOLDER, 'results_k{}_all.csv'.format(M.N_INSTANCES)))
+
+
+if __name__ == '__main__':
+    main()
