@@ -23,46 +23,46 @@
 We have uploaded a data file (`data/milk_sessions.csv`) which contains real features of milking sessions of cows. Note that the results of the paper cannot be reproduced by this data file, since we have ommited additional features which we could not disclose for busniess reasons.
 
 ### Data Schema (columns):
-* 'Date'
-* 'CowID'
-* 'DailyYield_KG':
-* 'DailyFat_P'
-* 'DailyProtein_P'
-* 'DailyConductivity'
-* 'DailyActivity'
-* 'CurrentRP'
-* 'CurrentMET'
-* 'CurrentKET'
-* 'CurrentMF'
-* 'CurrentPRO'
-* 'CurrentLDA'
-* 'CurrentMAST'
-* 'CurrentEdma'
-* 'CurrentLAME'
-* 'Disease'
-* 'DIM'
-* 'DIM_<50', 'DIM_50-175', 'DIM_>=175' - an indicator (0 or 1)
-* 'LactationNumber'
-* 'Fertility_Num'
-* 'Age'
-* 'Still'
-* 'Milk'
-* 'MilkTemperature'
-* 'Fat'
-* 'Protein'
-* 'Lactose'
-* 'LogScc'
-* 'Cf'
-* 'Blood'
-* 'Casein'
-* 'Mufa'
-* 'Pufa'
-* 'Sfa'
-* 'Ufa'
-* 'Pa'
-* 'Sa'
-* 'Oa'
-* 'Component7'
+|A                                                          |B                                         |C                                  |
+|-----------------------------------------------------------|------------------------------------------|-----------------------------------|
+|Feature                                                    |Annotation                                |Remarks                            |
+|DailyYield_KG                                              |Daily production milk (kg)                |sensor data                        |
+|DailyFat_P                                                 |daily fat %                               |sensor data                        |
+|DailyProtein_P                                             |daily protein %                           |sensor data                        |
+|DailyConductivity                                          |Daily milk conductivity (avg)             |sensor data                        |
+|DailyActivity                                              |motion sensors data accumulated energy    |                                   |
+|CurrentRP                                                  |Retained placenta (post partum desease)   |two categories                     |
+|CurrentMET                                                 |Metritis (post partum desease)            |two categories                     |
+|CurrentKET                                                 |ketosis (energy balance disorder)         |two categories                     |
+|CurrentMF                                                  |milk fever - post partum                  |two categories                     |
+|CurrentPRO                                                 |Edma of current - post partum             |two categories                     |
+|CurrentLDA                                                 |displaced abomasum - post partum          |two categories                     |
+|CurrentMAST                                                |Mastitis                                  |two categories                     |
+|CurrentEdma                                                |rare post partum desease                  |two categories                     |
+|CurrentLAME                                                |lameness                                  |two categories                     |
+|Desease                                                    |one of the above                          |                                   |
+|DIM                                                        |DIM - days in milk (Day from calving)     |                                   |
+|DIM_<50', 'DIM_50-175', 'DIM_>=175' - an indicator (0 or 1)|3 classes for DIM                         |                                   |
+|LactationNumber                                            |                                          |number of calvings                 |
+|Fertility number                                           |genycological status                      |categories(pregnant, on heat, etc…)|
+|Age                                                        |age in months                             |                                   |
+|Twin                                                       |Twin birth                                |two categories                     |
+|Still                                                      |Still birth                               |                                   |
+|Fat                                                        |FatDaily                                  |milk components                    |
+|Protein                                                    |ProteinDaily                              |milk components                    |
+|Lactose                                                    |LactoseDaily                              |milk components                    |
+|LogScc                                                     |log10 somatic cell count                  |milk components                    |
+|Cf                                                         |Curd firmness - milk coagulation potential|milk components                    |
+|BloodDaily                                                 |BloodDaily                                |milk components                    |
+|failed tryout for urea                                     |Component7Daily                           |milk components                    |
+|CaseinDaily                                                |CaseinDaily                               |milk components                    |
+|Mufa                                                       |mono un saturated fatty acids             |milk components                    |
+|Pufa                                                       |poly un saturated fatty acid              |milk components                    |
+|Sfa                                                        |Saturated fatty acids                     |milk components                    |
+|Ufa                                                        |unsaturated fatty acids                   |milk components                    |
+|Pa                                                         |Palamitic acid                            |milk components                    |
+|Sa                                                         |Salicitic acid                            |milk components                    |
+|Oa                                                         |Oleic acid                                |milk components                    |
 
 ## The Paper
 Paper is under review.
